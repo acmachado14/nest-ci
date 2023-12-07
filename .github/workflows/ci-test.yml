@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ "angelo-test" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Static Analysis
+      run: make lint
+
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: make rebuild
+
+  test:
+
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run tests
+      run: make tests

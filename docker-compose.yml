@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: "supersecret123"
+    ports:
+      - 5432:5432
+
+  server:
+    build: .
+    command: npm run start
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - PORT=3000
+    #depends_on:
+    #  - postgres
+    #links:
+    #  - postgres
+
+  #migrate:
+  #  build: .
+  #  entrypoint: node_modules/.bin/sequelize db:migrate --config src/config/database.js --migrations-path src/database/migrations/
+  #  volumes:
+  #    - .:/app
+  #    - /app/node_modules
+  #  depends_on:
+  #    - postgres
+
+  tests:
+    build: .
+    command: npm test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    #depends_on:
+    #  - postgres
+    #  - migrate
+    #links:
+    #  - postgres
+
+  lint:
+    build: .
+    command: npx eslint src/
+    volumes:
+      - .:/app
+      - /app/node_modules
