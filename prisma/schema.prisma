@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model State {
+  id             Int            @id
+  acronym        String
+  cities         City[]
+  stateHolidays  StateHoliday[] // Adicionando relação oposta
+}
+
+model City {
+  id        Int    @id
+  name      String
+  state     State  @relation(fields: [idState], references: [id])
+  idState   Int
+  cityHolidays CityHoliday[]
+}
+
+model CityHoliday {
+  id      Int     @id @default(autoincrement())
+  name    String
+  city    City    @relation(fields: [idCity], references: [id])
+  idCity  Int
+  date    DateTime
+}
+
+model StateHoliday {
+  id      Int     @id @default(autoincrement())
+  name    String
+  state   State   @relation(fields: [idState], references: [id])
+  idState Int
+  date    DateTime
+}
+
+model Holiday {
+  id    Int    @id @default(autoincrement())
+  name  String
+  date  DateTime
+}
