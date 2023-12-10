@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed:fill": "npx ts-node src/seeds/state.seed.ts && npx ts-node src/seeds/city.seed.ts && npx ts-node src/seeds/holiday.seed.ts",
+    "seed:drop": "npx ts-node src/seeds/drop.seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.2.10",

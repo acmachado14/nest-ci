@@ -18,8 +18,9 @@ start-postgres:
 	@docker-compose up -d postgres
 .PHONY: start-postgres
 
-setup-postgres-db: start-postgres migrate
-.PHONY: setup-postgres-db
+seed:
+	@docker-compose up seed
+.PHONY: seed
 
 tests:
 	@docker-compose run tests
