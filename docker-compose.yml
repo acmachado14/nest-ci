@@ -3,6 +3,7 @@ version: '3'
 services:
   postgres:
     image: postgres:latest
+    container_name: docker-postgres
     environment:
       POSTGRES_PASSWORD: 'supersecret123'
     ports:
@@ -27,7 +28,7 @@ services:
     build: .
     command: npx prisma migrate reset --force
     environment:
-      - DATABASE_URL=postgresql://postgres:supersecret123@nest-test_postgres_1:5432/mydb?schema=public
+      - DATABASE_URL=postgresql://postgres:supersecret123@docker-postgres:5432/mydb?schema=public
     volumes:
       - .:/app
       - /app/node_modules
@@ -38,7 +39,7 @@ services:
     build: .
     command: npm run seed:fill
     environment:
-      - DATABASE_URL=postgresql://postgres:supersecret123@nest-test_postgres_1:5432/mydb?schema=public
+      - DATABASE_URL=postgresql://postgres:supersecret123@docker-postgres:5432/mydb?schema=public
     volumes:
       - .:/app
       - /app/node_modules
@@ -50,7 +51,7 @@ services:
     build: .
     command: npm run test:e2e
     environment:
-      - DATABASE_URL=postgresql://postgres:supersecret123@nest-test_postgres_1:5432/mydb?schema=public
+      - DATABASE_URL=postgresql://postgres:supersecret123@docker-postgres:5432/mydb?schema=public
     volumes:
       - .:/app
       - /app/node_modules
@@ -58,8 +59,6 @@ services:
       - postgres
       - migrate
       - seed
-    links:
-      - postgres
 
   lint:
     build: .
