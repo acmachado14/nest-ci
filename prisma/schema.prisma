@@ -31,7 +31,7 @@ model CityHoliday {
   name    String
   city    City    @relation(fields: [idCity], references: [id])
   idCity  Int
-  date    DateTime
+  date    String
 }
 
 model StateHoliday {
@@ -39,11 +39,11 @@ model StateHoliday {
   name    String
   state   State   @relation(fields: [idState], references: [id])
   idState Int
-  date    DateTime
+  date    String
 }
 
 model Holiday {
   id    Int    @id @default(autoincrement())
   name  String
-  date  DateTime
+  date  String
 }

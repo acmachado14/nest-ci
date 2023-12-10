@@ -20,7 +20,7 @@ CREATE TABLE "CityHoliday" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "idCity" INTEGER NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
+    "date" TEXT NOT NULL,
 
     CONSTRAINT "CityHoliday_pkey" PRIMARY KEY ("id")
 );
@@ -30,7 +30,7 @@ CREATE TABLE "StateHoliday" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "idState" INTEGER NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
+    "date" TEXT NOT NULL,
 
     CONSTRAINT "StateHoliday_pkey" PRIMARY KEY ("id")
 );
@@ -39,7 +39,7 @@ CREATE TABLE "StateHoliday" (
 CREATE TABLE "Holiday" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
+    "date" TEXT NOT NULL,
 
     CONSTRAINT "Holiday_pkey" PRIMARY KEY ("id")
 );
