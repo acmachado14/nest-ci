@@ -12,7 +12,7 @@ export enum LocationType {
 
 @Injectable()
 export class HolidayService {
-  private mobileHolidayService: MobileHolidayService;
+  mobileHolidayService: MobileHolidayService;
 
   constructor() {
     this.mobileHolidayService = new MobileHolidayService(
@@ -263,6 +263,4 @@ export class HolidayService {
     }
     return true;
   }
-
-  async createHolidayByName(name: string) {}
 }

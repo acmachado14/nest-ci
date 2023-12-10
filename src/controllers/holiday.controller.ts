@@ -11,13 +11,17 @@ import {
   ForbiddenException,
   HttpCode,
 } from '@nestjs/common';
-import { HolidayService, LocationType } from '../services/holiday.service';
+
 import { CreateHolidayDto } from './dtos/create-holiday.dto';
-import { MobileHolidayService } from 'src/services/mobile-holiday.service';
+import { HolidayService, LocationType } from '../services/holiday.service';
 
 @Controller('feriados')
 export class HolidayController {
-  constructor(private readonly HolidayService: HolidayService) {}
+  private readonly HolidayService: HolidayService;
+
+  constructor() {
+    this.HolidayService = new HolidayService();
+  }
 
   private async validateAndFindRegion(codigoIBGE: string) {
     if (codigoIBGE.length !== 2 && codigoIBGE.length !== 7) {
@@ -107,8 +111,8 @@ export class HolidayController {
 
     const isHolidayName = /[a-zA-Z]/.test(data);
     if (isHolidayName) {
-      const mobileHoliday = new MobileHolidayService(new Date().getFullYear());
-      const holiday = mobileHoliday.getHolidayInfoByName(data);
+      const holiday =
+        this.HolidayService.mobileHolidayService.getHolidayInfoByName(data);
 
       const result = await this.HolidayService.getHoliday(
         codigoIBGE,
@@ -168,8 +172,8 @@ export class HolidayController {
     await this.validateAndFindRegion(IBGECode);
     const isHolidayName = /[a-zA-Z]/.test(date);
     if (isHolidayName) {
-      const mobileHoliday = new MobileHolidayService(new Date().getFullYear());
-      const holiday = mobileHoliday.getHolidayInfoByName(date);
+      const holiday =
+        this.HolidayService.mobileHolidayService.getHolidayInfoByName(date);
 
       const result = await this.HolidayService.getHoliday(
         IBGECode,
