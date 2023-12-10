@@ -16,11 +16,11 @@ export class HolidayService {
 
   constructor() {
     this.mobileHolidayService = new MobileHolidayService(
-      new Date().getFullYear(),
+      parseInt(process.env.CURRENT_YEAR, 10),
     );
   }
 
-  private async findHolidayByDate(date: Date) {
+  private async findHolidayByDate(date: string) {
     const holiday = await prisma.holiday.findFirst({
       where: {
         date,
@@ -75,7 +75,7 @@ export class HolidayService {
   private async getStateHoliday(codigoIBGE: string, data: string) {
     const codigoIBGEInt = parseInt(codigoIBGE, 10);
     try {
-      const holiday = await this.findHolidayByDate(new Date(data));
+      const holiday = await this.findHolidayByDate(data);
 
       if (holiday) {
         return {
@@ -89,7 +89,7 @@ export class HolidayService {
       const stateHoliday = await prisma.stateHoliday.findFirst({
         where: {
           idState: codigoIBGEInt,
-          date: new Date(data),
+          date: data,
         },
       });
 
@@ -112,7 +112,7 @@ export class HolidayService {
   private async getCityHoliday(codigoIBGE: string, data: string) {
     const codigoIBGEInt = parseInt(codigoIBGE, 10);
     try {
-      const holiday = await this.findHolidayByDate(new Date(data));
+      const holiday = await this.findHolidayByDate(data);
 
       if (holiday) {
         return {
@@ -126,7 +126,7 @@ export class HolidayService {
       const cityHoliday = await prisma.cityHoliday.findFirst({
         where: {
           idCity: codigoIBGEInt,
-          date: new Date(data),
+          date: data,
         },
       });
 
@@ -147,9 +147,10 @@ export class HolidayService {
   }
 
   async getHoliday(IBGECode: string, date: string) {
+    const newDate = date.substring(5, 10);
     if (IBGECode.length === 7) {
-      const cityHoliday = await this.getCityHoliday(IBGECode, date);
-      const stateHoliday = await this.getStateHoliday(
+      let cityHoliday = await this.getCityHoliday(IBGECode, date);
+      let stateHoliday = await this.getStateHoliday(
         IBGECode.substring(0, 2),
         date,
       );
@@ -161,8 +162,30 @@ export class HolidayService {
       if (stateHoliday) {
         return stateHoliday;
       }
+
+      //only with MM-DD
+      cityHoliday = await this.getCityHoliday(IBGECode, newDate);
+      stateHoliday = await this.getStateHoliday(
+        IBGECode.substring(0, 2),
+        newDate,
+      );
+
+      if (cityHoliday) {
+        return cityHoliday;
+      }
+
+      if (stateHoliday) {
+        return stateHoliday;
+      }
     } else {
-      const stateHoliday = await this.getStateHoliday(IBGECode, date);
+      let stateHoliday = await this.getStateHoliday(IBGECode, date);
+
+      if (stateHoliday) {
+        return stateHoliday;
+      }
+
+      //only with MM-DD
+      stateHoliday = await this.getStateHoliday(IBGECode, newDate);
 
       if (stateHoliday) {
         return stateHoliday;
@@ -180,7 +203,7 @@ export class HolidayService {
     const holiday = await prisma.stateHoliday.create({
       data: {
         idState: codigoIBGEInt,
-        date: new Date(data),
+        date: data,
         name: name,
       },
     });
@@ -196,7 +219,7 @@ export class HolidayService {
     const holiday = await prisma.cityHoliday.create({
       data: {
         idCity: codigoIBGEInt,
-        date: new Date(data),
+        date: data,
         name: name,
       },
     });
@@ -219,7 +242,7 @@ export class HolidayService {
     const codigoIBGEInt = parseInt(codigoIBGE, 10);
     if (codigoIBGE.length === 2) {
       const stateHolidayToUpdate = await prisma.stateHoliday.findFirst({
-        where: { idState: codigoIBGEInt, date: new Date(date) },
+        where: { idState: codigoIBGEInt, date: date },
       });
 
       const updatedHoliday = await prisma.stateHoliday.update({
@@ -227,9 +250,7 @@ export class HolidayService {
         data: { name: newName },
       });
 
-      return {
-        name: updatedHoliday.name,
-      };
+      return updatedHoliday;
     }
 
     const cityHolidayToUpdate = await prisma.cityHoliday.findFirst({
@@ -241,26 +262,43 @@ export class HolidayService {
       data: { name: newName },
     });
 
-    return {
-      name: updatedHoliday.name,
-    };
+    return updatedHoliday;
   }
 
   async removeHoliday(id: number, type: LocationType) {
-    switch (type) {
-      case LocationType.National:
-        await prisma.holiday.delete({
-          where: { id },
-        });
-      case LocationType.State:
-        await prisma.stateHoliday.delete({
-          where: { id },
-        });
-      case LocationType.City:
-        await prisma.cityHoliday.delete({
-          where: { id },
-        });
+    if (type == LocationType.State) {
+      await prisma.stateHoliday.delete({
+        where: { id },
+      });
+
+      return true;
     }
-    return true;
+
+    if (type == LocationType.City) {
+      await prisma.cityHoliday.delete({
+        where: { id },
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  async removeByNameAndCode(name: string, codigoIBGE: string) {
+    const codigoIBGEInt = parseInt(codigoIBGE, 10);
+    if (codigoIBGE.length === 2) {
+      await prisma.stateHoliday.deleteMany({
+        where: { idState: codigoIBGEInt, name: name },
+      });
+
+      return true;
+    }
+
+    await prisma.cityHoliday.deleteMany({
+      where: { idCity: codigoIBGEInt, name: name },
+    });
+
+    return false;
   }
 }

@@ -5,7 +5,6 @@ import {
   Delete,
   Param,
   Body,
-  ValidationPipe,
   BadRequestException,
   NotFoundException,
   ForbiddenException,
@@ -99,14 +98,9 @@ export class HolidayController {
   async createHoliday(
     @Param('codigoIBGE') codigoIBGE: string,
     @Param('data') data: string,
-    @Body(
-      new ValidationPipe({
-        transform: true,
-        exceptionFactory: () => new BadRequestException('Dados inválidos'),
-      }),
-    )
-    body: CreateHolidayDto,
+    @Body() body: CreateHolidayDto,
   ) {
+    const yearRange = parseInt(process.env.YEAR_RANGE, 10);
     await this.validateAndFindRegion(codigoIBGE);
 
     const isHolidayName = /[a-zA-Z]/.test(data);
@@ -116,7 +110,7 @@ export class HolidayController {
 
       const result = await this.HolidayService.getHoliday(
         codigoIBGE,
-        holiday.date.toString(),
+        holiday.date,
       );
 
       if (result != null) {
@@ -125,41 +119,75 @@ export class HolidayController {
         };
       }
 
-      const createdHoliday = await this.HolidayService.createHoliday(
-        codigoIBGE,
-        holiday.date.toString(),
-        holiday.name,
-      );
+      //Crio o feriado para os proximos anos
+      let currentYear = parseInt(process.env.CURRENT_YEAR, 10);
+      let createdHoliday = null;
+      for (let i = 0; i < yearRange; i++) {
+        const newHoliday =
+          this.HolidayService.mobileHolidayService.getHolidayInfoByName(data);
+
+        createdHoliday = await this.HolidayService.createHoliday(
+          codigoIBGE,
+          newHoliday.date,
+          newHoliday.name,
+        );
+
+        currentYear = currentYear + 1;
+        this.HolidayService.mobileHolidayService.setCurrentYear(currentYear);
+      }
 
       return {
         name: createdHoliday.name,
+        message: `Feriado criado para os próximos ${yearRange} anos!`,
       };
     }
 
-    this.validateRequest(data);
-    const completeDate = this.formatDate(data);
-    const holiday = await this.HolidayService.getHoliday(
-      codigoIBGE,
-      completeDate,
-    );
-
-    if (holiday) {
-      const result = await this.HolidayService.renameHoliday(
-        codigoIBGE,
-        completeDate,
-        body.name,
-      );
-      return result;
+    if (!body.name) {
+      throw new BadRequestException('Atributo name precisa estar preecnhido!');
     }
 
-    const result = await this.HolidayService.createHoliday(
-      codigoIBGE,
-      completeDate,
-      body.name,
-    );
+    this.validateRequest(data);
+    const holiday = await this.HolidayService.getHoliday(codigoIBGE, data);
+
+    if (holiday) {
+      if (holiday.type == LocationType.National) {
+        throw new ForbiddenException(
+          'Não é possivel alterar um feriado nacional!',
+        );
+      }
+
+      if (codigoIBGE.length === 7 && holiday.type == LocationType.State) {
+        throw new ForbiddenException(
+          'Não é possivel alterar um feriado do estado de a partir de uma cidade!',
+        );
+      }
+
+      const result = await this.HolidayService.renameHoliday(
+        codigoIBGE,
+        data,
+        body.name,
+      );
+
+      return {
+        name: result.name,
+        message: 'Feriado renomeado com sucesso!',
+      };
+    }
+
+    let currentYear = parseInt(process.env.CURRENT_YEAR, 10);
+    let createdHoliday = null;
+    for (let i = 0; i < yearRange; i++) {
+      createdHoliday = await this.HolidayService.createHoliday(
+        codigoIBGE,
+        `${currentYear}-${data}`,
+        body.name,
+      );
+      currentYear = currentYear + 1;
+    }
 
     return {
-      name: result.name,
+      name: createdHoliday.name,
+      message: `Feriado criado para os próximos ${yearRange} anos!`,
     };
   }
 
@@ -177,14 +205,29 @@ export class HolidayController {
 
       const result = await this.HolidayService.getHoliday(
         IBGECode,
-        holiday.date.toString(),
+        holiday.date,
       );
 
       if (result == null) {
         throw new NotFoundException('Feriado não cadastrado!');
       }
 
-      return await this.HolidayService.removeHoliday(result.id, result.type);
+      if (result.type == LocationType.National) {
+        throw new ForbiddenException(
+          'Não é possivel remover um feriado nacional!',
+        );
+      }
+
+      if (IBGECode.length === 7 && result.type == LocationType.State) {
+        throw new ForbiddenException(
+          'Não é possivel remover um feriado do estado apartir de uma cidade!',
+        );
+      }
+
+      return await this.HolidayService.removeByNameAndCode(
+        result.name,
+        IBGECode,
+      );
     }
 
     this.validateRequest(date);
@@ -208,7 +251,10 @@ export class HolidayController {
         );
       }
 
-      return await this.HolidayService.removeHoliday(holiday.id, holiday.type);
+      return await this.HolidayService.removeByNameAndCode(
+        holiday.name,
+        IBGECode,
+      );
     }
 
     throw new NotFoundException('Feriado não encontrado');

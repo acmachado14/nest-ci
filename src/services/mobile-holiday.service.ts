@@ -1,18 +1,27 @@
 export class MobileHolidayService {
-  easterDate: Date;
-  carnavalDate: Date;
-  corpusChristiDate: Date;
-  holyFridayDate: Date;
+  easterDate: string;
+  carnavalDate: string;
+  corpusChristiDate: string;
+  holyFridayDate: string;
 
   constructor(year: number) {
-    this.easterDate = this.genEasterSunday(year);
-    this.carnavalDate = new Date(this.easterDate);
-    this.corpusChristiDate = new Date(this.easterDate);
-    this.holyFridayDate = new Date(this.easterDate);
+    this.calculateMobileHolidayDate(year);
+  }
 
-    this.carnavalDate.setDate(this.easterDate.getDate() - 47);
-    this.corpusChristiDate.setDate(this.easterDate.getDate() + 60);
-    this.holyFridayDate.setDate(this.easterDate.getDate() - 2);
+  private calculateMobileHolidayDate(year: number) {
+    const easterDate = this.genEasterSunday(year);
+    const carnavalDate = new Date(easterDate);
+    const corpusChristiDate = new Date(easterDate);
+    const holyFridayDate = new Date(easterDate);
+
+    carnavalDate.setDate(easterDate.getDate() - 47);
+    corpusChristiDate.setDate(easterDate.getDate() + 60);
+    holyFridayDate.setDate(easterDate.getDate() - 2);
+
+    this.easterDate = this.toString(easterDate);
+    this.carnavalDate = this.toString(carnavalDate);
+    this.corpusChristiDate = this.toString(corpusChristiDate);
+    this.holyFridayDate = this.toString(holyFridayDate);
   }
 
   private genEasterSunday(year: number): Date {
@@ -44,11 +53,22 @@ export class MobileHolidayService {
 
     if (name == 'corpus-christi') {
       return {
-        name: 'Feriado Corpus Christi',
+        name: 'Corpus Christi',
         date: this.corpusChristiDate,
       };
     }
 
     return null;
+  }
+
+  private toString(date: Date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  setCurrentYear(year: number) {
+    this.calculateMobileHolidayDate(year);
   }
 }

@@ -4,31 +4,38 @@ import { MobileHolidayService } from '../services/mobile-holiday.service';
 const prisma = new PrismaClient();
 
 async function seedHolidays() {
-  const year = parseInt(process.env.YEAR, 10);
-  const mobileHoliday = new MobileHolidayService(year);
-
   const holidaysData = [
-    { name: 'Ano Novo', date: '2023-01-01' },
-    { name: 'Tiradentes', date: '2023-04-21' },
-    { name: 'Dia do Trabalhador', date: '2023-05-01' },
-    { name: 'Independência', date: '2023-09-07' },
-    { name: 'Nossa Senhora Aparecida', date: '2023-10-12' },
-    { name: 'Finados', date: '2023-11-02' },
-    { name: 'Proclamação da República', date: '2023-11-15' },
-    { name: 'Natal', date: '2023-12-25' },
-    {
-      name: 'Sexta Feira Santa',
-      date: mobileHoliday.holyFridayDate.toString(),
-    },
+    { name: 'Ano Novo', date: '01-01' },
+    { name: 'Tiradentes', date: '04-21' },
+    { name: 'Dia do Trabalhador', date: '05-01' },
+    { name: 'Independência', date: '09-07' },
+    { name: 'Nossa Senhora Aparecida', date: '10-12' },
+    { name: 'Finados', date: '11-02' },
+    { name: 'Proclamação da República', date: '11-15' },
+    { name: 'Natal', date: '12-25' },
   ];
 
   for (const holidayData of holidaysData) {
     await prisma.holiday.create({
       data: {
         name: holidayData.name,
-        date: new Date(holidayData.date),
+        date: holidayData.date,
       },
     });
+  }
+
+  let currentYear = parseInt(process.env.CURRENT_YEAR, 10);
+  const yearRange = parseInt(process.env.YEAR_RANGE, 10);
+  for (let i = 0; i < yearRange; i++) {
+    const mobileHoliday = new MobileHolidayService(currentYear);
+
+    await prisma.holiday.create({
+      data: {
+        name: 'Sexta-Feira Santa',
+        date: mobileHoliday.holyFridayDate,
+      },
+    });
+    currentYear = currentYear + 1;
   }
 
   const consciousnessHolidays = [27, 16, 13, 51, 33, 35];
@@ -36,7 +43,7 @@ async function seedHolidays() {
     await prisma.stateHoliday.create({
       data: {
         idState: consciousnessHoliday,
-        date: new Date('2023-11-20'),
+        date: '11-20',
         name: 'Consciência Negra',
       },
     });
@@ -45,7 +52,7 @@ async function seedHolidays() {
   await prisma.cityHoliday.create({
     data: {
       idCity: 1400100,
-      date: new Date('2023-11-20'),
+      date: '11-20',
       name: 'Consciência Negra',
     },
   });
