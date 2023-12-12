@@ -11,7 +11,8 @@ services:
 
   server:
     build: .
-    command: npm run start
+    command: >
+      sh -c 'sleep 10 && npm run start'
     ports:
       - '3000:3000'
     volumes:
@@ -19,10 +20,12 @@ services:
       - /app/node_modules
     environment:
       - PORT=3000
+      - DATABASE_URL=postgresql://postgres:supersecret123@docker-postgres:5432/mydb?schema=public
+      - YEAR_RANGE=10
+      - CURRENT_YEAR=2020
     depends_on:
       - postgres
-    links:
-      - postgres
+      - seed
 
   migrate:
     build: .
