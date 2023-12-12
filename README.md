@@ -93,6 +93,7 @@ ou
 ```
 npm run test:e2e
 ```
+Existe uma maior quantidade de testes para o problema, eles podem ser visualizados na pasta de [testes](./test) do sistema. Esses mostram um pouco mais da validação das rotas, vale a pena dar uma olhada.
 
 <h2 id="ci">
     Entrega Contínua 
