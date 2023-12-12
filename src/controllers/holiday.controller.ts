@@ -39,9 +39,7 @@ export class HolidayController {
   private validateGetRequest(data: string): void {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(data)) {
-      throw new BadRequestException(
-        'Formato de data inválido. Use "AAAA-MM-DD".',
-      );
+      throw new BadRequestException('Formato de data inválido. Use AAAA-MM-DD');
     }
 
     const [ano, mes, dia] = data.split('-').map(Number);
@@ -107,6 +105,10 @@ export class HolidayController {
     if (isHolidayName) {
       const holiday =
         this.HolidayService.mobileHolidayService.getHolidayInfoByName(data);
+
+      if (holiday == null) {
+        throw new BadRequestException('Feriado não encontrado!');
+      }
 
       const result = await this.HolidayService.getHoliday(
         codigoIBGE,
@@ -202,6 +204,10 @@ export class HolidayController {
     if (isHolidayName) {
       const holiday =
         this.HolidayService.mobileHolidayService.getHolidayInfoByName(date);
+
+      if (holiday == null) {
+        throw new BadRequestException('Feriado não encontrado!');
+      }
 
       const result = await this.HolidayService.getHoliday(
         IBGECode,
