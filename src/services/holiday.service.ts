@@ -228,7 +228,6 @@ export class HolidayService {
   }
 
   async createHoliday(codigoIBGE: string, data: string, name: string) {
-    console.log(data);
     const codigoIBGEInt = parseInt(codigoIBGE, 10);
     const result =
       codigoIBGE.length === 2
