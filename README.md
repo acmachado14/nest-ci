@@ -76,7 +76,8 @@ Para solucionar o problema, não faria sentido cadastrar um feriado para sempre 
 Outra variável inserida foi a CURRENT_YEAR visto que os testes dados pelo problema foram anos anteriores, o padrão foi de 2020 nos testes.
 
 As tabelas do banco de dados se relacionam da seguinte forma:
-[link](teste)
+
+<img src=".github/images/db.jpg"/>
 
 <h2 id="tests">
     Testes
