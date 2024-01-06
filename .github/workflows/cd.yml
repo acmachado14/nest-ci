@@ -36,4 +36,4 @@ jobs:
       - name: Run docker container to seed database
         run: docker exec nest-ci-container npm run seed:fill
       - name: Run docker container
-        run: docker exec nest-ci-container npm run start
+        run: docker exec -d nest-ci-container npm run start
