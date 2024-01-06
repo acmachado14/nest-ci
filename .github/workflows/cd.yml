@@ -21,10 +21,15 @@ jobs:
     needs: build
     runs-on: [aws-ec2]
     steps:
-      - name: Create network
-        run: docker network create nest-ci
+      - name: Create network if it does not exist
+        run: |
+          if ! docker network inspect nest-ci &> /dev/null; then
+            docker network create nest-ci
+          fi
       - name: Pull postgres image from docker hub
         run: docker pull postgres:latest
+      - name: Delete old postregres container
+        run: docker rm -f docker-postgres
       - name: Run postgres container
         run: docker run -d --name docker-postgres --network nest-ci -p 5432:5432 -e POSTGRES_PASSWORD=supersecret123 postgres:latest
       - name: Pull image from docker hub
