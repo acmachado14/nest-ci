@@ -1,0 +1,39 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+      - name: Login to docker hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build docker image
+        run: docker build -t acmachado14/nest-ci .
+      - name: Publish image to docker hub
+        run: docker push acmachado14/nest-ci:latest
+
+  deploy:
+    needs: build
+    runs-on: [aws-ec2]
+    steps:
+      - name: Create network
+        run: docker network create nest-ci
+      - name: Pull postgres image from docker hub
+        run: docker pull postgres:latest
+      - name: Run postgres container
+        run: docker run -d --name docker-postgres --network nest-ci -p 5432:5432 -e POSTGRES_PASSWORD=supersecret123 postgres:latest
+      - name: Pull image from docker hub
+        run: docker pull acmachado14/nest-ci:latest
+      - name: Delete old container
+        run: docker rm -f nest-ci-container
+      - name: Run docker container to migrate database
+        run: docker run -d -p 3000:3000 --name nest-ci-container --network nest-ci acmachado14/nest-ci sh -c "npx prisma migrate reset --force && tail -f /dev/null"
+      - name: Run docker container to seed database
+        run: docker exec nest-ci-container npm run seed:fill
+      - name: Run docker container
+        run: docker exec nest-ci-container npm run start
